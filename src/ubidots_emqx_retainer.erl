@@ -1,0 +1,114 @@
+%%--------------------------------------------------------------------
+%% Copyright (c) 2020 EMQ Technologies Co., Ltd. All Rights Reserved.
+%%
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
+%%
+%%     http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
+%%--------------------------------------------------------------------
+
+-module(ubidots_emqx_retainer).
+
+-behaviour(gen_server).
+
+-include("emqx_retainer.hrl").
+-include_lib("emqx/include/emqx.hrl").
+-include_lib("emqx/include/logger.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
+
+-logger_header("[Retainer]").
+
+-export([start_link/1]).
+
+-export([ load/1
+        , unload/0
+        ]).
+
+-export([ on_session_subscribed/3
+        ]).
+
+
+%% gen_server callbacks
+-export([ init/1
+        , handle_call/3
+        , handle_cast/2
+        , handle_info/2
+        ]).
+
+-record(state, {stats_fun, stats_timer, expiry_timer}).
+
+%%--------------------------------------------------------------------
+%% Load/Unload
+%%--------------------------------------------------------------------
+
+load(_) ->
+    emqx:hook('session.subscribed', fun ?MODULE:on_session_subscribed/3, []).
+
+unload() ->
+    emqx:unhook('session.subscribed', fun ?MODULE:on_session_subscribed/3).
+
+on_session_subscribed(_, _, #{share := ShareName}) when ShareName =/= undefined ->
+    ok;
+on_session_subscribed(_, Topic, #{rh := Rh, is_new := IsNew}) ->
+    case Rh =:= 0 orelse (Rh =:= 1 andalso IsNew) of
+        true -> emqx_pool:async_submit(fun dispatch/2, [self(), Topic]);
+        _ -> ok
+    end.
+
+%% @private
+dispatch(Pid, Topic) ->
+  NewMessages = ubidots_emqx_retainer_payload_changer:get_retained_messages_from_topic(Topic),
+  dispatch_ubidots_message(NewMessages, Pid).
+
+
+dispatch_ubidots_message([], _) ->
+  ok;
+dispatch_ubidots_message([Msg = #message{topic = Topic} | Rest], Pid) ->
+  Pid ! {deliver, Topic, Msg},
+  dispatch_ubidots_message(Rest, Pid).
+
+%%--------------------------------------------------------------------
+%% APIs
+%%--------------------------------------------------------------------
+
+%% @doc Start the retainer
+-spec(start_link(Env :: list()) -> emqx_types:startlink_ret()).
+start_link(Env) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [Env], []).
+
+
+%%--------------------------------------------------------------------
+%% gen_server callbacks
+%%--------------------------------------------------------------------
+
+init([_]) ->
+    StatsFun = emqx_stats:statsfun('retained.count', 'retained.max'),
+    {ok, StatsTimer} = timer:send_interval(timer:seconds(1), stats),
+    State = #state{stats_fun = StatsFun, stats_timer = StatsTimer},
+    {ok, State}.
+
+handle_call(Req, _From, State) ->
+    ?LOG(error, "Unexpected call: ~p", [Req]),
+    {reply, ignored, State}.
+
+handle_cast(Msg, State) ->
+    ?LOG(error, "Unexpected cast: ~p", [Msg]),
+    {noreply, State}.
+
+handle_info(stats, State) ->
+    {noreply, State, hibernate};
+
+handle_info(expire, State) ->
+    {noreply, State, hibernate};
+
+handle_info(Info, State) ->
+    ?LOG(error, "Unexpected info: ~p", [Info]),
+    {noreply, State}.
+
