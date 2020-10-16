@@ -1,3 +1,53 @@
 %%-*- mode: erlang -*-
 %% Ubidots Retainer config mapping
 
+{mapping, "retainer.reactor_cache.hostname", "ubidots_emqx_retainer.reactor_cache_hostname", [
+  {default, "127.0.0.1"},
+  {datatype, string}
+]}.
+
+{mapping, "retainer.reactor_cache.port", "ubidots_emqx_retainer.reactor_cache_port", [
+  {default, 6379},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.reactor_cache.database", "ubidots_emqx_retainer.reactor_cache_database", [
+  {default, 2},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.reactor_cache.password", "ubidots_emqx_retainer.reactor_cache_password", [
+    {default, ""},
+   {datatype, string}
+]}.
+
+{mapping, "retainer.ubidots_cache.hostname", "ubidots_emqx_retainer.ubidots_cache_hostname", [
+  {default, "127.0.0.1"},
+  {datatype, string}
+]}.
+
+{mapping, "retainer.ubidots_cache.port", "ubidots_emqx_retainer.ubidots_cache_port", [
+  {default, 6379},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.ubidots_cache.database", "ubidots_emqx_retainer.ubidots_cache_database", [
+  {default, 1},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.ubidots_cache.password", "ubidots_emqx_retainer.ubidots_cache_password", [
+  {default, ""},
+  {datatype, string}
+]}.
+
+{mapping, "retainer.reactor_cache.get_subscription_variables_from_mqtt_topic_script_file_path", "ubidots_emqx_retainer.reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path", [
+  {default, "retainer_changer/get_subscription_variables_from_mqtt_topic.lua"},
+  {datatype, string}
+]}.
+
+{mapping, "retainer.ubidots_cache.get_values_variables_script_file_path", "ubidots_emqx_retainer.ubidots_cache_get_values_variables_script_file_path", [
+  {default, "retainer_changer/get_values_variables.lua"},
+  {datatype, string}
+]}.
+
