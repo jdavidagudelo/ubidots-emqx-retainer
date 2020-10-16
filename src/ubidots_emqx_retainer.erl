@@ -30,7 +30,7 @@
         , unload/0
         ]).
 
--export([ on_session_subscribed/4
+-export([ on_session_subscribed/3
         ]).
 
 
@@ -48,21 +48,21 @@
 %%--------------------------------------------------------------------
 
 load(_) ->
-    emqx:hook('session.subscribed', fun ?MODULE:on_session_subscribed/4, []).
+    emqx:hook('session.subscribed', fun ?MODULE:on_session_subscribed/3, []).
 
 unload() ->
-    emqx:unhook('session.subscribed', fun ?MODULE:on_session_subscribed/4).
+    emqx:unhook('session.subscribed', fun ?MODULE:on_session_subscribed/3).
 
-on_session_subscribed(_, _, #{share := ShareName}, _) when ShareName =/= undefined ->
+on_session_subscribed(_, _, #{share := ShareName}) when ShareName =/= undefined ->
     ok;
-on_session_subscribed(_, Topic, #{rh := Rh, is_new := IsNew}, Env) ->
+on_session_subscribed(_, Topic, #{rh := Rh, is_new := IsNew}) ->
     case Rh =:= 0 orelse (Rh =:= 1 andalso IsNew) of
-        true -> emqx_pool:async_submit(fun dispatch/3, [self(), Topic, Env]);
+        true -> emqx_pool:async_submit(fun dispatch/2, [self(), Topic]);
         _ -> ok
     end.
 
 %% @private
-dispatch(Pid, Topic, Env) ->
+dispatch(Pid, Topic) ->
   NewMessages = ubidots_emqx_retainer_payload_changer:get_retained_messages_from_topic(Topic),
   dispatch_ubidots_message(NewMessages, Pid).
 
