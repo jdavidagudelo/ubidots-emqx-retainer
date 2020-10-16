@@ -53,14 +53,11 @@ t_retain_handling(_) ->
     ReactorRedisClient = ubidots_emqx_retainer_payload_changer:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_payload_changer:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_payload_changer:initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, "token", "owner_id", Devices),
-    Result = ubidots_emqx_retainer_payload_changer:get_values_from_topic("/v1.6/users/token/devices/d1/+/lv", Env),
     io:fwrite("Result? ~s ~n", [Result]),
     {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
     {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/v1">>, [{qos, 0}, {rh, 0}]),
-    %%?assertEqual(1, length(receive_messages(1))),
-    Msgs = receive_messages(1),
-    io:fwrite("Messages? ~s ~n", [Msgs]),
+    ?assertEqual(1, length(receive_messages(1))),
     ok = emqtt:disconnect(C1).
 
 receive_messages(Count) ->
