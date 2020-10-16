@@ -28,16 +28,6 @@ end_per_suite(_Config) ->
 
 init_per_testcase(_TestCase, Config) ->
     application:stop(ubidots_emqx_retainer),
-    application:set_env(emqx_retainer, reactor_cache_host_name, "127.0.1"),
-    application:set_env(emqx_retainer, reactor_cache_port, 6379),
-    application:set_env(emqx_retainer, reactor_cache_database, 2),
-    application:set_env(emqx_retainer, reactor_cache_password, ""),
-    application:set_env(emqx_retainer, ubidots_cache_host_name, "127.0.1"),
-    application:set_env(emqx_retainer, ubidots_cache_port, 6379),
-    application:set_env(emqx_retainer, ubidots_cache_database, 1),
-    application:set_env(emqx_retainer, ubidots_cache_password, ""),
-    application:set_env(emqx_retainer, reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path, "retainer_changer/get_subscription_variables_from_mqtt_topic.lua"),
-    application:set_env(emqx_retainer, ubidots_cache_get_values_variables_script_file_path, "retainer_changer/get_values_variables.lua"),
     application:ensure_all_started(ubidots_emqx_retainer),
     Config.
 
@@ -53,12 +43,22 @@ t_retain_handling(_) ->
     ReactorRedisClient = ubidots_emqx_retainer_payload_changer:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_payload_changer:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_payload_changer:initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, "token", "owner_id", Devices),
-    io:fwrite("Result? ~s ~n", [Result]),
     {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
     {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/v1">>, [{qos, 0}, {rh, 0}]),
-    ?assertEqual(1, length(receive_messages(1))),
+    ExpectedMessages = [#{ topic => <<"/v1.6/devices/d1/v1">>, payload => <<"{\"value\": 11.1, \"timestamp\": 11, \"context\": {\"a\": 11}, \"created_at\": 11}">>}],
+    Messages = receive_messages(1),
+    ?assertEqual(1, length(Messages)),
+    validate_messages(Messages, ExpectedMessages),
     ok = emqtt:disconnect(C1).
+
+
+validate_messages([], []) ->
+    ok;
+validate_messages([ #{topic := Topic, payload := Payload} | Rest], [#{topic := ExpectedTopic, payload := ExpectedPayload} | ExpectedRest]) ->
+    ?assertEqual(Topic, ExpectedTopic),
+    ?assertEqual(Payload, ExpectedPayload),
+    validate_messages(Rest, ExpectedRest).
 
 receive_messages(Count) ->
     receive_messages(Count, []).

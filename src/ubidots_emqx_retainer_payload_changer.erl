@@ -15,10 +15,6 @@
 
 -export([get_reactor_redis_client/1, get_ubidots_redis_client/1, initialize_mqtt_cache/5, get_test_env/0]).
 
-get_file_path_local(LocalFilePath) ->
-  {ok, FilePath} = file:get_cwd(),
-  filename:join([FilePath, LocalFilePath]).
-
 
 get_reactor_redis_client(Env) ->
   Host = proplists:get_value(reactor_cache_host_name, Env, "127.0.0.1"),
@@ -36,6 +32,16 @@ get_ubidots_redis_client(Env) ->
   Password = proplists:get_value(ubidots_cache_password, Env, ""),
   {ok, RedisClient} = eredis:start_link(Host, Port, Database, Password, no_reconnect),
   RedisClient.
+
+get_lua_script_from_base64("") ->
+  "";
+get_lua_script_from_base64(Data) ->
+  base64:decode(Data).
+
+get_lua_script_data_from_env_result("", FilePath) ->
+  get_lua_script_from_file(FilePath);
+get_lua_script_data_from_env_result(Data, _) ->
+  Data.
 
 get_lua_script_from_file(FilePath) ->
   {ok, FileData} = file:read_file(FilePath),
@@ -56,8 +62,8 @@ get_values_from_topic(Topic, Env) ->
   UbidotsScriptFilePath = proplists:get_value(ubidots_cache_get_values_variables_script_file_path, Env, ""),
   ReactorRedisClient = get_reactor_redis_client(Env),
   UbidotsRedisClient = get_ubidots_redis_client(Env),
-  ReactorScriptData = get_lua_script_from_file(get_file_path_local(ReactorScriptFilePath)),
-  UbidotsScriptData = get_lua_script_from_file(get_file_path_local(UbidotsScriptFilePath)),
+  ReactorScriptData = get_lua_script_data_from_env_result(get_lua_script_from_base64(proplists:get_value(reactor_cache_get_subscription_variables_from_mqtt_topic_script_base64, Env, "")), ReactorScriptFilePath),
+  UbidotsScriptData = get_lua_script_data_from_env_result(get_lua_script_from_base64(proplists:get_value(ubidots_cache_get_values_variables_script_base64, Env, "")), UbidotsScriptFilePath),
   VariablesData = get_variables_from_topic(ReactorRedisClient, ReactorScriptData, Topic),
   Values = get_values_variables(UbidotsRedisClient, UbidotsScriptData, VariablesData),
   Values.

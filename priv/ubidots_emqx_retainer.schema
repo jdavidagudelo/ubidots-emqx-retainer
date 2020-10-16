@@ -51,3 +51,11 @@
   {datatype, string}
 ]}.
 
+{mapping, "retainer.reactor_cache.get_subscription_variables_from_mqtt_topic_script_base64", "ubidots_emqx_retainer.reactor_cache_get_subscription_variables_from_mqtt_topic_script_base64", [
+  {datatype, string}
+]}.
+
+{mapping, "retainer.ubidots_cache.get_values_variables_script_base64", "ubidots_emqx_retainer.ubidots_cache_get_values_variables_script_base64", [
+  {datatype, string}
+]}.
+
