@@ -81,11 +81,11 @@ get_retained_messages_from_topic(Topic, Env) ->
 
 get_test_env() ->
   [
-    {reactor_cache_host_name, "127.0.0.1"},
+    {reactor_cache_host_name, "redis"},
     {reactor_cache_port, 6379},
     {reactor_cache_database, 2},
     {reactor_cache_password, ""},
-    {ubidots_cache_host_name, "127.0.0.1"},
+    {ubidots_cache_host_name, "redis"},
     {ubidots_cache_port, 6379},
     {ubidots_cache_database, 1},
     {ubidots_cache_password, ""},
