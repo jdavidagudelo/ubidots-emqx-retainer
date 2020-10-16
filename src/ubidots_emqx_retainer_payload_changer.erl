@@ -89,8 +89,8 @@ get_test_env() ->
     {ubidots_cache_port, 6379},
     {ubidots_cache_database, 1},
     {ubidots_cache_password, ""},
-    {reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path, "retainer_changer/get_subscription_variables_from_mqtt_topic.lua"},
-    {ubidots_cache_get_values_variables_script_file_path, "retainer_changer/get_values_variables.lua"}
+    {reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path, "retainer_test_data/get_subscription_variables_from_mqtt_topic.lua"},
+    {ubidots_cache_get_values_variables_script_file_path, "retainer_test_data/get_values_variables.lua"}
     ].
 
 initialize_variables(_, _, _, _, []) ->

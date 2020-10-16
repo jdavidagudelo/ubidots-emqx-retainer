@@ -27,7 +27,6 @@ jobs:
             - uses: actions/checkout@v1
             - name: run test cases
               run: |
-                mv retainer_test_data/ retainer_changer/
                 make xref
                 make eunit  
                 make ct
