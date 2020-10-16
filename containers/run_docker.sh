@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run --net=host emqx_retainer:v0.0.1
+docker run --net=host -d emqx_retainer:v0.0.1

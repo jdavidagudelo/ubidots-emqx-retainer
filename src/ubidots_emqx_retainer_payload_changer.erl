@@ -13,22 +13,19 @@
 %% API
 -export([get_retained_messages_from_topic/2]).
 
+-export([get_reactor_redis_client/1, get_ubidots_redis_client/1, initialize_mqtt_cache/5, get_test_env/0]).
+
 get_file_path_local(LocalFilePath) ->
   {ok, FilePath} = file:get_cwd(),
   filename:join([FilePath, LocalFilePath]).
-
-get_retainer_configuration() ->
-  {ok, FilePath} = file:get_cwd(),
-  FilePathConfiguration = filename:join([FilePath, "retainer_changer", "retainer_changer.conf"]),
-  {ok, [Options | _]} = file:consult(FilePathConfiguration),
-  Options.
 
 
 get_reactor_redis_client(Env) ->
   Host = proplists:get_value(reactor_cache_host_name, Env, "127.0.0.1"),
   Port = proplists:get_value(reactor_cache_port, Env, 6379),
-  Database = proplists:get_value(reactor_cache_database, Env, 1),
+  Database = proplists:get_value(reactor_cache_database, Env, 2),
   Password = proplists:get_value(reactor_cache_password, Env, ""),
+  io:fwrite("Hello world!~n", []),
   {ok, RedisClient} = eredis:start_link(Host, Port, Database, Password, no_reconnect),
   RedisClient.
 
@@ -76,6 +73,20 @@ get_retained_messages_from_topic(Topic, Env) ->
   get_messages(Values).
 
 
+get_test_env() ->
+  [
+    {reactor_cache_host_name, "127.0.0.1"},
+    {reactor_cache_port, 6379},
+    {reactor_cache_database, 2},
+    {reactor_cache_password, ""},
+    {ubidots_cache_host_name, "127.0.0.1"},
+    {ubidots_cache_port, 6379},
+    {ubidots_cache_database, 1},
+    {ubidots_cache_password, ""},
+    {reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path, "retainer_changer/get_subscription_variables_from_mqtt_topic.lua"},
+    {ubidots_cache_get_values_variables_script_file_path, "retainer_changer/get_values_variables.lua"}
+    ].
+
 initialize_variables(_, _, _, _, []) ->
   ok;
 initialize_variables(ReactorRedisClient, UbidotsRedisClient, OwnerId, DeviceLabel, [VariableLabel, VariableId | Rest]) ->
@@ -106,11 +117,11 @@ initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, Token, OwnerId, De
 retainer_multiple_lv_test_() ->
   Devices = ["d1", "d1_id", ["v1", "v1_d1_id", "v2", "v2_d1_id", "v3", "v3_d1_id"],
     "d2", "d2_id", ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
-  Options = get_retainer_configuration(),
-  ReactorRedisClient = get_reactor_redis_client(Options),
-  UbidotsRedisClient = get_ubidots_redis_client(Options),
+  Env = get_test_env(),
+  ReactorRedisClient = get_reactor_redis_client(Env),
+  UbidotsRedisClient = get_ubidots_redis_client(Env),
   initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, "token", "owner_id", Devices),
-  Result = get_values_from_topic("/v1.6/users/token/devices/d1/+/lv"),
+  Result = get_values_from_topic("/v1.6/users/token/devices/d1/+/lv", Env),
   eredis:q(ReactorRedisClient, ["FLUSHDB"]),
   eredis:q(UbidotsRedisClient, ["FLUSHDB"]),
   [
@@ -122,11 +133,11 @@ retainer_multiple_lv_test_() ->
 retainer_multiple_test_() ->
   Devices = ["d1", "d1_id", ["v1", "v1_d1_id", "v2", "v2_d1_id", "v3", "v3_d1_id"],
     "d2", "d2_id", ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
-  Options = get_retainer_configuration(),
-  ReactorRedisClient = get_reactor_redis_client(Options),
-  UbidotsRedisClient = get_ubidots_redis_client(Options),
+  Env = get_test_env(),
+  ReactorRedisClient = get_reactor_redis_client(Env),
+  UbidotsRedisClient = get_ubidots_redis_client(Env),
   initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, "token", "owner_id", Devices),
-  Result = get_values_from_topic("/v1.6/users/token/devices/d1/+"),
+  Result = get_values_from_topic("/v1.6/users/token/devices/d1/+", Env),
   eredis:q(ReactorRedisClient, ["FLUSHDB"]),
   eredis:q(UbidotsRedisClient, ["FLUSHDB"]),
   [
@@ -142,11 +153,11 @@ retainer_multiple_test_() ->
 retainer_lv_test_() ->
   Devices = ["d1", "d1_id", ["v1", "v1_d1_id", "v2", "v2_d1_id", "v3", "v3_d1_id"],
     "d2", "d2_id", ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
-  Options = get_retainer_configuration(),
-  ReactorRedisClient = get_reactor_redis_client(Options),
-  UbidotsRedisClient = get_ubidots_redis_client(Options),
+  Env = get_test_env(),
+  ReactorRedisClient = get_reactor_redis_client(Env),
+  UbidotsRedisClient = get_ubidots_redis_client(Env),
   initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, "token", "owner_id", Devices),
-  [Topic, Value | _Rest] = get_values_from_topic("/v1.6/users/token/devices/d1/v1/lv"),
+  [Topic, Value | _Rest] = get_values_from_topic("/v1.6/users/token/devices/d1/v1/lv", Env),
   eredis:q(ReactorRedisClient, ["FLUSHDB"]),
   eredis:q(UbidotsRedisClient, ["FLUSHDB"]),
   [
@@ -158,11 +169,11 @@ retainer_lv_test_() ->
 retainer_test_() ->
   Devices = ["d1", "d1_id", ["v1", "v1_d1_id", "v2", "v2_d1_id", "v3", "v3_d1_id"],
     "d2", "d2_id", ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
-  Options = get_retainer_configuration(),
-  ReactorRedisClient = get_reactor_redis_client(Options),
-  UbidotsRedisClient = get_ubidots_redis_client(Options),
+  Env = get_test_env(),
+  ReactorRedisClient = get_reactor_redis_client(Env),
+  UbidotsRedisClient = get_ubidots_redis_client(Env),
   initialize_mqtt_cache(ReactorRedisClient, UbidotsRedisClient, "token", "owner_id", Devices),
-  [Topic, Value | _Rest] = get_values_from_topic("/v1.6/users/token/devices/d1/v1"),
+  [Topic, Value | _Rest] = get_values_from_topic("/v1.6/users/token/devices/d1/v1", Env),
   eredis:q(ReactorRedisClient, ["FLUSHDB"]),
   eredis:q(UbidotsRedisClient, ["FLUSHDB"]),
   [
@@ -172,11 +183,10 @@ retainer_test_() ->
   ].
 
 retainer_empty_test_() ->
-  Result = get_values_from_topic("/v1.6/users/token/devices/d1/v1"),
-
-  Options = get_retainer_configuration(),
-  ReactorRedisClient = get_reactor_redis_client(Options),
-  UbidotsRedisClient = get_ubidots_redis_client(Options),
+  Env = get_test_env(),
+  Result = get_values_from_topic("/v1.6/users/token/devices/d1/v1", Env),
+  ReactorRedisClient = get_reactor_redis_client(Env),
+  UbidotsRedisClient = get_ubidots_redis_client(Env),
   eredis:q(ReactorRedisClient, ["FLUSHDB"]),
   eredis:q(UbidotsRedisClient, ["FLUSHDB"]),
   [
