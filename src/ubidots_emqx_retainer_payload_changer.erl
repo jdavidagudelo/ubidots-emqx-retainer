@@ -21,7 +21,6 @@ get_reactor_redis_client(Env) ->
   Port = proplists:get_value(reactor_cache_port, Env, 6379),
   Database = proplists:get_value(reactor_cache_database, Env, 2),
   Password = proplists:get_value(reactor_cache_password, Env, ""),
-  io:fwrite("Hello world!~n", []),
   {ok, RedisClient} = eredis:start_link(Host, Port, Database, Password, no_reconnect),
   RedisClient.
 
