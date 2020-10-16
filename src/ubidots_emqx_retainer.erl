@@ -55,15 +55,15 @@ unload() ->
 
 on_session_subscribed(_, _, #{share := ShareName}, _Env) when ShareName =/= undefined ->
     ok;
-on_session_subscribed(_, Topic, #{rh := Rh, is_new := IsNew}, _Env) ->
+on_session_subscribed(_, Topic, #{rh := Rh, is_new := IsNew}, Env) ->
     case Rh =:= 0 orelse (Rh =:= 1 andalso IsNew) of
-        true -> emqx_pool:async_submit(fun dispatch/2, [self(), Topic]);
+        true -> emqx_pool:async_submit(fun dispatch/3, [self(), Topic, Env]);
         _ -> ok
     end.
 
 %% @private
-dispatch(Pid, Topic) ->
-  NewMessages = ubidots_emqx_retainer_payload_changer:get_retained_messages_from_topic(Topic),
+dispatch(Pid, Topic, Env) ->
+  NewMessages = ubidots_emqx_retainer_payload_changer:get_retained_messages_from_topic(Topic, Env),
   dispatch_ubidots_message(NewMessages, Pid).
 
 

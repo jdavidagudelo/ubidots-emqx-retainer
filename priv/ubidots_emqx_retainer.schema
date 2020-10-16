@@ -1,7 +1,7 @@
 %%-*- mode: erlang -*-
 %% Ubidots Retainer config mapping
 
-{mapping, "retainer.reactor_cache.hostname", "ubidots_emqx_retainer.reactor_cache_hostname", [
+{mapping, "retainer.reactor_cache.host_name", "ubidots_emqx_retainer.reactor_cache_host_name", [
   {default, "127.0.0.1"},
   {datatype, string}
 ]}.
@@ -21,7 +21,7 @@
    {datatype, string}
 ]}.
 
-{mapping, "retainer.ubidots_cache.hostname", "ubidots_emqx_retainer.ubidots_cache_hostname", [
+{mapping, "retainer.ubidots_cache.host_name", "ubidots_emqx_retainer.ubidots_cache_host_name", [
   {default, "127.0.0.1"},
   {datatype, string}
 ]}.

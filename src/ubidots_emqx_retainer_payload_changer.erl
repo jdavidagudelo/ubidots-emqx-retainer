@@ -11,7 +11,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 %% API
--export([get_retained_messages_from_topic/1]).
+-export([get_retained_messages_from_topic/2]).
 
 get_file_path_local(LocalFilePath) ->
   {ok, FilePath} = file:get_cwd(),
@@ -24,19 +24,19 @@ get_retainer_configuration() ->
   Options.
 
 
-get_reactor_redis_client(Options) ->
-  Host = maps:get(reactor_cache_host_name, Options, "127.0.0.1"),
-  Port = maps:get(reactor_cache_port, Options, 6379),
-  Database = maps:get(reactor_cache_database, Options, 1),
-  Password = maps:get(reactor_cache_password, Options, ""),
+get_reactor_redis_client(Env) ->
+  Host = proplists:get_value(reactor_cache_host_name, Env, "127.0.0.1"),
+  Port = proplists:get_value(reactor_cache_port, Env, 6379),
+  Database = proplists:get_value(reactor_cache_database, Env, 1),
+  Password = proplists:get_value(reactor_cache_password, Env, ""),
   {ok, RedisClient} = eredis:start_link(Host, Port, Database, Password, no_reconnect),
   RedisClient.
 
-get_ubidots_redis_client(Options) ->
-  Host = maps:get(ubidots_cache_host_name, Options, "127.0.0.1"),
-  Port = maps:get(ubidots_cache_port, Options, 6379),
-  Database = maps:get(ubidots_cache_database, Options, 1),
-  Password = maps:get(ubidots_cache_password, Options, ""),
+get_ubidots_redis_client(Env) ->
+  Host = proplists:get_value(ubidots_cache_host_name, Env, "127.0.0.1"),
+  Port = proplists:get_value(ubidots_cache_port, Env, 6379),
+  Database = proplists:get_value(ubidots_cache_database, Env, 1),
+  Password = proplists:get_value(ubidots_cache_password, Env, ""),
   {ok, RedisClient} = eredis:start_link(Host, Port, Database, Password, no_reconnect),
   RedisClient.
 
@@ -54,12 +54,11 @@ get_values_variables(RedisClient, ScriptData, VariablesData) ->
   {ok, Result} = eredis:q(RedisClient, Args),
   Result.
 
-get_values_from_topic(Topic) ->
-  Options = get_retainer_configuration(),
-  ReactorScriptFilePath = maps:get(reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path, Options, ""),
-  UbidotsScriptFilePath = maps:get(ubidots_cache_get_values_variables_script_file_path, Options, ""),
-  ReactorRedisClient = get_reactor_redis_client(Options),
-  UbidotsRedisClient = get_ubidots_redis_client(Options),
+get_values_from_topic(Topic, Env) ->
+  ReactorScriptFilePath = proplists:get_value(reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path, Env, ""),
+  UbidotsScriptFilePath = proplists:get_value(ubidots_cache_get_values_variables_script_file_path, Env, ""),
+  ReactorRedisClient = get_reactor_redis_client(Env),
+  UbidotsRedisClient = get_ubidots_redis_client(Env),
   ReactorScriptData = get_lua_script_from_file(get_file_path_local(ReactorScriptFilePath)),
   UbidotsScriptData = get_lua_script_from_file(get_file_path_local(UbidotsScriptFilePath)),
   VariablesData = get_variables_from_topic(ReactorRedisClient, ReactorScriptData, Topic),
@@ -72,8 +71,8 @@ get_messages([Topic, Value | Rest]) ->
   NewMessage = emqx_message:make(Topic, Value),
   [NewMessage | get_messages(Rest)].
 
-get_retained_messages_from_topic(Topic) ->
-  Values = get_values_from_topic(Topic),
+get_retained_messages_from_topic(Topic, Env) ->
+  Values = get_values_from_topic(Topic, Env),
   get_messages(Values).
 
 
