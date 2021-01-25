@@ -11,6 +11,8 @@ To configure redis for testing add this to /etc/hosts:
 
     127.0.0.1 redis
 
+To run code validations:
 
+    make xref eunit ct cover
 
 
