@@ -46,26 +46,19 @@
 
 -record(state, {stats_fun, stats_timer, expiry_timer}).
 
-get_ecpool_options() ->
-    [%% Pool Size
-     {pool_size, 10},
-     %% Pool Type: round_robin | random | hash
-     {pool_type, round_robin},
-     %% Auto reconnect
-     {auto_reconnect, 3}].
-
 %%--------------------------------------------------------------------
 %% Load/Unload
 %%--------------------------------------------------------------------
 
 load(Env) ->
-    Options = get_ecpool_options(),
     ecpool:start_pool(?POOL_REACTOR,
                       ubidots_emqx_reactor_redis_cli,
-                      Options ++ Env),
+                      ubidots_emqx_retainer_ecpool:get_ecpool_reactor_options(Env)
+                          ++ Env),
     ecpool:start_pool(?POOL_CORE,
                       ubidots_emqx_core_redis_cli,
-                      Options ++ Env),
+                      ubidots_emqx_retainer_ecpool:get_ecpool_ubidots_options(Env)
+                          ++ Env),
     Config = #{pool_reactor => ?POOL_REACTOR,
                pool_core => ?POOL_CORE},
     emqx:hook('session.subscribed',
@@ -94,10 +87,10 @@ dispatch(Pid, Topic, Env,
          #{pool_reactor := PoolReactor,
            pool_core := PoolCore}) ->
     NewMessages =
-        ubidots_emqx_retainer_payload_changer_new:get_retained_messages_from_topic(Topic,
-                                                                                   Env,
-                                                                                   PoolReactor,
-                                                                                   PoolCore),
+        ubidots_emqx_retainer_payload_changer:get_retained_messages_from_topic(Topic,
+                                                                               Env,
+                                                                               PoolReactor,
+                                                                               PoolCore),
     dispatch_ubidots_message(NewMessages, Pid).
 
 dispatch_ubidots_message([], _) -> ok;

@@ -21,6 +21,21 @@
    {datatype, string}
 ]}.
 
+{mapping, "retainer.reactor_cache.pool_size", "ubidots_emqx_retainer.reactor_cache_pool_size", [
+  {default, 10},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.reactor_cache.reconnect", "ubidots_emqx_retainer.reactor_cache_reconnect", [
+  {default, 3},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.reactor_cache.pool_type", "ubidots_emqx_retainer.reactor_cache_pool_type", [
+  {default, round_robin},
+  {datatype, {enum, [round_robin, random, hash]}}
+]}.
+
 {mapping, "retainer.ubidots_cache.host_name", "ubidots_emqx_retainer.ubidots_cache_host_name", [
   {default, "127.0.0.1"},
   {datatype, string}
@@ -39,6 +54,21 @@
 {mapping, "retainer.ubidots_cache.password", "ubidots_emqx_retainer.ubidots_cache_password", [
   {default, ""},
   {datatype, string}
+]}.
+
+{mapping, "retainer.ubidots_cache.pool_size", "ubidots_emqx_retainer.ubidots_cache_pool_size", [
+  {default, 10},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.ubidots_cache.reconnect", "ubidots_emqx_retainer.ubidots_cache_reconnect", [
+  {default, 3},
+  {datatype, integer}
+]}.
+
+{mapping, "retainer.ubidots_cache.pool_type", "ubidots_emqx_retainer.ubidots_cache_pool_type", [
+  {default, round_robin},
+  {datatype, {enum, [round_robin, random, hash]}}
 ]}.
 
 {mapping, "retainer.reactor_cache.get_subscription_variables_from_mqtt_topic_script_file_path", "ubidots_emqx_retainer.reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path", [
