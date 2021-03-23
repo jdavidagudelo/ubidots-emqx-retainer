@@ -6,6 +6,9 @@ export REBAR_GIT_CLONE_OPTIONS
 REBAR = rebar3
 all: compile
 
+format: compile
+	$(REBAR) format
+
 compile:
 	$(REBAR) compile
 
