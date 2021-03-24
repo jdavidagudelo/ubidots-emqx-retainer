@@ -48,12 +48,7 @@
 %%--------------------------------------------------------------------
 
 load(Env) ->
-    ecpool:start_pool(?POOL_REACTOR,
-                      ubidots_emqx_reactor_redis_cli,
-                      ubidots_emqx_retainer_ecpool:get_ecpool_reactor_options(Env) ++ Env),
-    ecpool:start_pool(?POOL_CORE,
-                      ubidots_emqx_core_redis_cli,
-                      ubidots_emqx_retainer_ecpool:get_ecpool_ubidots_options(Env) ++ Env),
+    ubidots_emqx_retainer_ecpool:start_pools(?POOL_REACTOR, ?POOL_CORE, Env),
     Config = #{pool_reactor => ?POOL_REACTOR, pool_core => ?POOL_CORE},
     emqx:hook('session.subscribed', fun on_session_subscribed/5, [Env, Config]).
 
