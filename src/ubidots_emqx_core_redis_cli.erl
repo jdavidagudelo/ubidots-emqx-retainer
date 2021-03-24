@@ -27,52 +27,27 @@
 %%--------------------------------------------------------------------
 
 connect(Env) ->
-    Host = proplists:get_value(ubidots_cache_host_name,
-                               Env,
-                               "127.0.0.1"),
-    Port = proplists:get_value(ubidots_cache_port,
-                               Env,
-                               6379),
-    Database = proplists:get_value(ubidots_cache_database,
-                                   Env,
-                                   1),
-    Password = proplists:get_value(ubidots_cache_password,
-                                   Env,
-                                   ""),
-    case eredis:start_link(Host,
-                           Port,
-                           Database,
-                           Password,
-                           3000,
-                           5000)
-        of
+    Host = proplists:get_value(ubidots_cache_host_name, Env, "127.0.0.1"),
+    Port = proplists:get_value(ubidots_cache_port, Env, 6379),
+    Database = proplists:get_value(ubidots_cache_database, Env, 1),
+    Password = proplists:get_value(ubidots_cache_password, Env, ""),
+    case eredis:start_link(Host, Port, Database, Password, 3000, 5000) of
         {ok, Pid} -> {ok, Pid};
         {error, Reason = {connection_error, _}} ->
-            ?LOG(error,
-                 "[Redis] Can't connect to Redis server: "
-                 "Connection refused."),
+            ?LOG(error, "[Redis] Can't connect to Redis server: Connection refused."),
             {error, Reason};
         {error, Reason = {authentication_error, _}} ->
-            ?LOG(error,
-                 "[Redis] Can't connect to Redis server: "
-                 "Authentication failed."),
+            ?LOG(error, "[Redis] Can't connect to Redis server: Authentication failed."),
             {error, Reason};
         {error, Reason} ->
-            ?LOG(error, "[Redis] Can't connect to Redis server: ~p",
-                 [Reason]),
+            ?LOG(error, "[Redis] Can't connect to Redis server: ~p", [Reason]),
             {error, Reason}
     end.
 
-get_values_variables(Pool, Type, ScriptData,
-                     VariablesData) ->
+get_values_variables(Pool, Type, ScriptData, VariablesData) ->
     VariablesDataArray = array:from_list(VariablesData),
-    Args = ["EVAL",
-            ScriptData,
-            array:size(VariablesDataArray)]
-               ++ VariablesData,
+    Args = ["EVAL", ScriptData, array:size(VariablesDataArray)] ++ VariablesData,
     case Type of
         cluster -> eredis_cluster:q(Pool, Args);
-        _ ->
-            ecpool:with_client(Pool,
-                               fun (RedisClient) -> eredis:q(RedisClient, Args) end)
+        _ -> ecpool:with_client(Pool, fun (RedisClient) -> eredis:q(RedisClient, Args) end)
     end.

@@ -26,8 +26,7 @@ init_per_suite(Config) ->
     emqx_ct_helpers:start_apps([ubidots_emqx_retainer]),
     Config.
 
-end_per_suite(_Config) ->
-    emqx_ct_helpers:stop_apps([ubidots_emqx_retainer]).
+end_per_suite(_Config) -> emqx_ct_helpers:stop_apps([ubidots_emqx_retainer]).
 
 init_per_testcase(_TestCase, Config) ->
     application:stop(ubidots_emqx_retainer),
@@ -46,28 +45,19 @@ t_retain_wild_card_variable_lv(_) ->
                "d2_id",
                ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
-    ReactorRedisClient =
-        ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
-    UbidotsRedisClient =
-        ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
+    UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
                                                            UbidotsRedisClient,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
-    {ok, C1} = emqtt:start_link([{clean_start, true},
-                                 {proto_ver, v5}]),
+    {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
-    {ok, #{}, [0]} = emqtt:subscribe(C1,
-                                     <<"/v1.6/users/token/devices/d1/+/lv">>,
-                                     [{qos, 0}, {rh, 0}]),
-    ExpectedMessages = [#{topic =>
-                              <<"/v1.6/devices/d1/v3/lv">>,
-                          payload => <<"11.1">>},
-                        #{topic => <<"/v1.6/devices/d1/v2/lv">>,
-                          payload => <<"11.1">>},
-                        #{topic => <<"/v1.6/devices/d1/v1/lv">>,
-                          payload => <<"11.1">>}],
+    {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/+/lv">>, [{qos, 0}, {rh, 0}]),
+    ExpectedMessages = [#{topic => <<"/v1.6/devices/d1/v3/lv">>, payload => <<"11.1">>},
+                        #{topic => <<"/v1.6/devices/d1/v2/lv">>, payload => <<"11.1">>},
+                        #{topic => <<"/v1.6/devices/d1/v1/lv">>, payload => <<"11.1">>}],
     Messages = receive_messages(3),
     ?assertEqual(3, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
@@ -81,36 +71,27 @@ t_retain_wild_card_variable(_) ->
                "d2_id",
                ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
-    ReactorRedisClient =
-        ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
-    UbidotsRedisClient =
-        ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
+    UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
                                                            UbidotsRedisClient,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
-    {ok, C1} = emqtt:start_link([{clean_start, true},
-                                 {proto_ver, v5}]),
+    {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
-    {ok, #{}, [0]} = emqtt:subscribe(C1,
-                                     <<"/v1.6/users/token/devices/d1/+">>,
-                                     [{qos, 0}, {rh, 0}]),
-    ExpectedMessages = [#{topic =>
-                              <<"/v1.6/devices/d1/v3">>,
+    {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/+">>, [{qos, 0}, {rh, 0}]),
+    ExpectedMessages = [#{topic => <<"/v1.6/devices/d1/v3">>,
                           payload =>
-                              <<"{\"value\": 11.1, \"timestamp\": 11, "
-                                "\"context\": {\"a\": 11}, \"created_at\": "
+                              <<"{\"value\": 11.1, \"timestamp\": 11, \"context\": {\"a\": 11}, \"created_at\": "
                                 "11}">>},
                         #{topic => <<"/v1.6/devices/d1/v2">>,
                           payload =>
-                              <<"{\"value\": 11.1, \"timestamp\": 11, "
-                                "\"context\": {\"a\": 11}, \"created_at\": "
+                              <<"{\"value\": 11.1, \"timestamp\": 11, \"context\": {\"a\": 11}, \"created_at\": "
                                 "11}">>},
                         #{topic => <<"/v1.6/devices/d1/v1">>,
                           payload =>
-                              <<"{\"value\": 11.1, \"timestamp\": 11, "
-                                "\"context\": {\"a\": 11}, \"created_at\": "
+                              <<"{\"value\": 11.1, \"timestamp\": 11, \"context\": {\"a\": 11}, \"created_at\": "
                                 "11}">>}],
     Messages = receive_messages(3),
     ?assertEqual(3, (length(Messages))),
@@ -120,21 +101,16 @@ t_retain_wild_card_variable(_) ->
 t_retain_empty(_) ->
     Devices = [],
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
-    ReactorRedisClient =
-        ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
-    UbidotsRedisClient =
-        ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
+    UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
                                                            UbidotsRedisClient,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
-    {ok, C1} = emqtt:start_link([{clean_start, true},
-                                 {proto_ver, v5}]),
+    {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
-    {ok, #{}, [0]} = emqtt:subscribe(C1,
-                                     <<"/v1.6/users/token/devices/d1/v1">>,
-                                     [{qos, 0}, {rh, 0}]),
+    {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/v1">>, [{qos, 0}, {rh, 0}]),
     ExpectedMessages = [],
     Messages = receive_messages(0),
     ?assertEqual(0, (length(Messages))),
@@ -149,24 +125,17 @@ t_retain_lv(_) ->
                "d2_id",
                ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
-    ReactorRedisClient =
-        ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
-    UbidotsRedisClient =
-        ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
+    UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
                                                            UbidotsRedisClient,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
-    {ok, C1} = emqtt:start_link([{clean_start, true},
-                                 {proto_ver, v5}]),
+    {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
-    {ok, #{}, [0]} = emqtt:subscribe(C1,
-                                     <<"/v1.6/users/token/devices/d1/v1/lv">>,
-                                     [{qos, 0}, {rh, 0}]),
-    ExpectedMessages = [#{topic =>
-                              <<"/v1.6/devices/d1/v1/lv">>,
-                          payload => <<"11.1">>}],
+    {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/v1/lv">>, [{qos, 0}, {rh, 0}]),
+    ExpectedMessages = [#{topic => <<"/v1.6/devices/d1/v1/lv">>, payload => <<"11.1">>}],
     Messages = receive_messages(1),
     ?assertEqual(1, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
@@ -180,26 +149,19 @@ t_retain_single_value(_) ->
                "d2_id",
                ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
-    ReactorRedisClient =
-        ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
-    UbidotsRedisClient =
-        ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
+    UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
                                                            UbidotsRedisClient,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
-    {ok, C1} = emqtt:start_link([{clean_start, true},
-                                 {proto_ver, v5}]),
+    {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
     {ok, _} = emqtt:connect(C1),
-    {ok, #{}, [0]} = emqtt:subscribe(C1,
-                                     <<"/v1.6/users/token/devices/d1/v1">>,
-                                     [{qos, 0}, {rh, 0}]),
-    ExpectedMessages = [#{topic =>
-                              <<"/v1.6/devices/d1/v1">>,
+    {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/v1">>, [{qos, 0}, {rh, 0}]),
+    ExpectedMessages = [#{topic => <<"/v1.6/devices/d1/v1">>,
                           payload =>
-                              <<"{\"value\": 11.1, \"timestamp\": 11, "
-                                "\"context\": {\"a\": 11}, \"created_at\": "
+                              <<"{\"value\": 11.1, \"timestamp\": 11, \"context\": {\"a\": 11}, \"created_at\": "
                                 "11}">>}],
     Messages = receive_messages(1),
     ?assertEqual(1, (length(Messages))),
@@ -207,10 +169,8 @@ t_retain_single_value(_) ->
     ok = emqtt:disconnect(C1).
 
 validate_messages([], []) -> ok;
-validate_messages([#{topic := Topic, payload := Payload}
-                   | Rest],
-                  [#{topic := ExpectedTopic, payload := ExpectedPayload}
-                   | ExpectedRest]) ->
+validate_messages([#{topic := Topic, payload := Payload} | Rest],
+                  [#{topic := ExpectedTopic, payload := ExpectedPayload} | ExpectedRest]) ->
     ?assertEqual(Topic, ExpectedTopic),
     ?assertEqual(Payload, ExpectedPayload),
     validate_messages(Rest, ExpectedRest).
