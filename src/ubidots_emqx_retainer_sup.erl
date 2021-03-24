@@ -24,13 +24,10 @@
 
 -export([init/1]).
 
-start_link(Env) ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, [Env]).
+start_link(Env) -> supervisor:start_link({local, ?MODULE}, ?MODULE, [Env]).
 
 init([Env]) ->
     {ok,
      {{one_for_one, 10, 3600},
-      [#{id => ubidots_retainer,
-         start => {ubidots_emqx_retainer, start_link, [Env]},
-         restart => permanent, shutdown => 5000, type => worker,
-         modules => [ubidots_emqx_retainer]}]}}.
+      [#{id => ubidots_retainer, start => {ubidots_emqx_retainer, start_link, [Env]}, restart => permanent, shutdown => 5000,
+         type => worker, modules => [ubidots_emqx_retainer]}]}}.
