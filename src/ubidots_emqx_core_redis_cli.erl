@@ -20,7 +20,7 @@
 
 -include_lib("emqx/include/logger.hrl").
 
--export([connect/1, get_values_variables/4, get_values_variables_no_script/4]).
+-export([connect/1, get_values_variables/4, get_values_variables/3]).
 
 %%--------------------------------------------------------------------
 %% Redis Connect/Query
@@ -71,5 +71,5 @@ get_values_loop_redis(Pool, Type, [ValueKind, Topic, VariableId | RestData]) ->
     {ok, Value} = get_value_by_key(Pool, VariableKey, Type),
     [Topic, Value] ++ get_values_loop_redis(Pool, Type, RestData).
 
-get_values_variables_no_script(_Pool, Type, _ScriptData, VariablesData) ->
+get_values_variables(_Pool, Type, VariablesData) ->
     {ok, get_values_loop_redis(pool_core, Type, VariablesData)}.

@@ -30,7 +30,7 @@
 
 -export([start_link/1]).
 
--export([load/1, unload/0]).
+-export([load/1, unload/1]).
 
 -export([on_session_subscribed/5]).
 
@@ -52,7 +52,9 @@ load(Env) ->
     Config = #{pool_reactor => ?POOL_REACTOR, pool_core => ?POOL_CORE},
     emqx:hook('session.subscribed', fun on_session_subscribed/5, [Env, Config]).
 
-unload() -> emqx:unhook('session.subscribed', {?MODULE, on_session_subscribed}).
+unload(Env) -> 
+    ubidots_emqx_retainer_ecpool:stop_pools(?POOL_REACTOR, ?POOL_CORE, Env),
+    emqx:unhook('session.subscribed', {?MODULE, on_session_subscribed}).
 
 on_session_subscribed(_, _, #{share := ShareName}, _Env, _Config) when ShareName =/= undefined -> ok;
 on_session_subscribed(_, Topic, #{rh := Rh, is_new := IsNew}, Env, Config) ->
