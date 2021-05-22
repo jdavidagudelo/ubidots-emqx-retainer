@@ -4,21 +4,29 @@
 
 -export([start_pools/3, stop_pools/3]).
 
-stop_pools(PoolReactor, PoolCore, Env) ->
-    ok. 
+stop_pools(_PoolReactor, PoolCore, Env) ->
+    Type =  proplists:get_value(ubidots_cache_type, Env, single),
+    case Type of
+        cluster -> 
+            eredis_cluster:stop_pool(PoolCore),
+            eredis_cluster:stop()
+    end.
 
-init_redis_cluster() ->
+init_redis_cluster_core(PoolCore, Env) ->
     eredis_cluster:start(),
-    {ok, _ } = eredis_cluster:start_pool(pool_core_test, 
-        [{pool_size, 10},
+    Fun = fun(S) ->
+        case string:split(S, ":", trailing) of
+         [Domain]       -> {Domain, 6379};
+         [Domain, Port] -> {Domain, list_to_integer(Port)}
+        end
+    end,
+    Server = proplists:get_value(ubidots_cache_server, Env, 10),
+    Servers = string:tokens(Server, ","),
+    eredis_cluster:start_pool(PoolCore, 
+        [{pool_size, proplists:get_value(ubidots_cache_pool_size, Env, 10)},
     {password, "bitnami"},
-     {servers, [{"192.168.100.10", 6380}, 
-                {"192.168.100.10", 6381}, 
-                {"192.168.100.10", 6382}, 
-                {"192.168.100.10", 6383}, 
-                {"192.168.100.10", 6384}, 
-                {"192.168.100.10", 6385}]},
-     {auto_reconnect, 3}]).
+     {servers, [Fun(S1) || S1 <- Servers]},
+     {auto_reconnect, proplists:get_value(ubidots_cache_reconnect, Env, 3)}]).
 
 start_pools(PoolReactor, PoolCore, Env) ->
     ecpool:start_pool(PoolReactor, ubidots_emqx_reactor_redis_cli, get_ecpool_reactor_options(Env) ++ Env),
@@ -26,9 +34,9 @@ start_pools(PoolReactor, PoolCore, Env) ->
 
 
 start_core_pool(PoolCore, Env) -> 
-    Type =  proplists:get_value(ubidots_cache_type, Env, single),
+    Type =  proplists:get_value(ubidots_cache_type, Env, cluster),
     case Type of
-        cluster -> ok;
+        cluster -> init_redis_cluster_core(PoolCore, Env);
         single -> ecpool:start_pool(PoolCore, ubidots_emqx_core_redis_cli, get_ecpool_ubidots_options(Env) ++ Env)
     end.
 
