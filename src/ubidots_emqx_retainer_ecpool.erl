@@ -4,13 +4,8 @@
 
 -export([start_pools/3, stop_pools/3]).
 
-stop_pools(_PoolReactor, PoolCore, Env) ->
-    Type =  proplists:get_value(ubidots_cache_type, Env, single),
-    case Type of
-        cluster -> 
-            eredis_cluster:stop_pool(PoolCore),
-            eredis_cluster:stop()
-    end.
+stop_pools(_PoolReactor, _PoolCore, _Env) ->
+    ok.
 
 init_redis_cluster_core(PoolCore, Env) ->
     eredis_cluster:start(),

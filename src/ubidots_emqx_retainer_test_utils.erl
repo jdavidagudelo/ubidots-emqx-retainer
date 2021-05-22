@@ -84,10 +84,11 @@ get_test_env() ->
       "retainer_test_data/get_subscription_variables_from_mqtt_topic.lua"},
      {ubidots_cache_get_values_variables_script_file_path, "retainer_test_data/get_values_variables.lua"}].
 
-flushdb(_ReactorRedisClient, UbidotsRedisClient, UbidotsRedisType) ->
+flushdb(ReactorRedisClient, UbidotsRedisClient, UbidotsRedisType) ->
     case UbidotsRedisType of
         single -> 
-            eredis:q(UbidotsRedisClient, ["FLUSHDB"]);
+            eredis:q(UbidotsRedisClient, ["FLUSHDB"]),
+            eredis:q(ReactorRedisClient, ["FLUSHDB"]);
         cluster -> 
             eredis_cluster:q(UbidotsRedisClient, ["FLUSHDB"])
     end.

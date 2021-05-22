@@ -28,4 +28,6 @@ start(_Type, _Args) ->
     ubidots_emqx_retainer:load(Env),
     {ok, Sup}.
 
-stop(_State) -> ubidots_emqx_retainer:unload().
+stop(_State) -> 
+    Env = application:get_all_env(ubidots_emqx_retainer).
+    %ubidots_emqx_retainer:unload(Env).
