@@ -25,6 +25,14 @@ jobs:
               - 6379:6379
         steps:
             - uses: actions/checkout@v1
+            - uses: vishnudxb/redis-cluster@1.0.5
+              with:
+                master1-port: 6380
+                master2-port: 6381
+                master3-port: 6382
+                slave1-port: 6383
+                slave2-port: 6384
+                slave3-port: 6385
             - name: run test cases
               run: |
                 make xref
