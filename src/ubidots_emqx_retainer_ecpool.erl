@@ -17,9 +17,10 @@ init_redis_cluster_core(PoolCore, Env) ->
     end,
     Server = proplists:get_value(ubidots_cache_server, Env, 10),
     Servers = string:tokens(Server, ","),
+    Password = proplists:get_value(ubidots_cache_password, Env, ""),
     eredis_cluster:start_pool(PoolCore, 
         [{pool_size, proplists:get_value(ubidots_cache_pool_size, Env, 10)},
-    {password, "bitnami"},
+    {password, Password},
      {servers, [Fun(S1) || S1 <- Servers]},
      {auto_reconnect, proplists:get_value(ubidots_cache_reconnect, Env, 3)}]).
 

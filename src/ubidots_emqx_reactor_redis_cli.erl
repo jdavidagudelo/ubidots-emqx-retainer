@@ -44,9 +44,6 @@ connect(Env) ->
             {error, Reason}
     end.
 
-get_variables_from_topic(Pool, Type, ScriptData, Topic) ->
+get_variables_from_topic(Pool, _Type, ScriptData, Topic) ->
     Args = ["EVAL", ScriptData, 1, Topic],
-    case Type of
-        cluster -> eredis_cluster:q(Pool, Args);
-        _ -> ecpool:with_client(Pool, fun (RedisClient) -> eredis:q(RedisClient, Args) end)
-    end.
+    ecpool:with_client(Pool, fun (RedisClient) -> eredis:q(RedisClient, Args) end).

@@ -29,5 +29,5 @@ start(_Type, _Args) ->
     {ok, Sup}.
 
 stop(_State) -> 
-    Env = application:get_all_env(ubidots_emqx_retainer).
-    %ubidots_emqx_retainer:unload(Env).
+    Env = application:get_all_env(ubidots_emqx_retainer),
+    ubidots_emqx_retainer:unload(Env).
