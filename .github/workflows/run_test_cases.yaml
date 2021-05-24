@@ -13,8 +13,6 @@ jobs:
           # Label used to access the service container
           rediscluster:
             image: grokzen/redis-cluster:latest
-            options: >-
-              -e "IP=0.0.0.0"
             ports:
               - 7000-7005:7000-7005
           redis:
