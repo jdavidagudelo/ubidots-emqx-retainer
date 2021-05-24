@@ -63,7 +63,7 @@ get_redis_cluster_test_env() ->
      {ubidots_cache_port, 6379},
      {ubidots_cache_database, 1},
      {ubidots_cache_type, cluster},
-     {ubidots_cache_server, "127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005"},
+     {ubidots_cache_server, "rediscluster:7000,rediscluster:7001,rediscluster:7002,rediscluster:7003,rediscluster:7004,rediscluster:7005"},
      {ubidots_cache_password, "bitnami"},
      {reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path,
       "retainer_test_data/get_subscription_variables_from_mqtt_topic.lua"},

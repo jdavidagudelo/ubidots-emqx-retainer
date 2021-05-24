@@ -11,7 +11,7 @@ jobs:
         # Service containers to run with `runner-job`
         services:
           # Label used to access the service container
-          redis_cluster:
+          rediscluster:
             image: grokzen/redis-cluster:latest
             options: >-
               -e "IP=0.0.0.0"
