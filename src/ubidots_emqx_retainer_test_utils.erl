@@ -50,7 +50,6 @@ init_redis_cluster_ubidots(PoolCore, Env) ->
     Servers = string:tokens(Server, ","),
     eredis_cluster:start_pool(PoolCore, 
         [{pool_size, proplists:get_value(ubidots_cache_pool_size, Env, 10)},
-    {password, proplists:get_value(ubidots_cache_password, Env, "")},
      {servers, [Fun(S1) || S1 <- Servers]},
      {auto_reconnect, proplists:get_value(ubidots_cache_reconnect, Env, 3)}]).
 
@@ -64,7 +63,7 @@ get_redis_cluster_test_env() ->
      {ubidots_cache_port, 6379},
      {ubidots_cache_database, 1},
      {ubidots_cache_type, cluster},
-     {ubidots_cache_server, "127.0.0.1:6380,127.0.0.1:6381,127.0.0.1:6382,127.0.0.1:6383,127.0.0.1:6384,127.0.0.1:6385"},
+     {ubidots_cache_server, "127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005"},
      {ubidots_cache_password, "bitnami"},
      {reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path,
       "retainer_test_data/get_subscription_variables_from_mqtt_topic.lua"},
