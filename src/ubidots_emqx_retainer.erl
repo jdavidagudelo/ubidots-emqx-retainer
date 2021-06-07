@@ -20,9 +20,9 @@
 
 -include("ubidots_emqx_retainer.hrl").
 
--include_lib("emqx/include/emqx.hrl").
+-include_lib("emqx.hrl").
 
--include_lib("emqx/include/logger.hrl").
+-include_lib("logger.hrl").
 
 -include_lib("stdlib/include/ms_transform.hrl").
 
