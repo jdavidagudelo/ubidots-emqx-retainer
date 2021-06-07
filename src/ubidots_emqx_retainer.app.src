@@ -4,7 +4,7 @@
   {vsn, "4.3.0"},
   {modules, []},
   {registered, [ubidots_emqx_retainer_sup]},
-  {applications, [kernel, stdlib,eredis,eredis_cluster,ecpool,emqx]},
+  {applications, [kernel, stdlib,eredis,eredis_cluster,ecpool]},
   {mod, {ubidots_emqx_retainer_app, []}},
   {env, []},
   {licenses, ["Apache-2.0"]},
