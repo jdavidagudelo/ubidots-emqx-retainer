@@ -18,6 +18,7 @@
 
 -behaviour(ecpool_worker).
 
+-include_lib("emqx.hrl").
 -include("ubidots_emqx_retainer.hrl").
 -include("logger.hrl").
 
