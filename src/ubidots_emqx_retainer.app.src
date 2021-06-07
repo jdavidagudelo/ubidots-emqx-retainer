@@ -4,7 +4,7 @@
   {vsn, "git"},
   {modules, []},
   {registered, [ubidots_emqx_retainer_sup]},
-  {applications, [kernel, stdlib]},
+  {applications, [kernel, stdlib,eredis,eredis_cluster,ecpool]},
   {mod, {ubidots_emqx_retainer_app, []}},
   {env, []},
   {licenses, ["Apache-2.0"]},
