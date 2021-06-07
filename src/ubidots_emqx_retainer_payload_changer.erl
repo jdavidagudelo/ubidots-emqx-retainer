@@ -29,24 +29,20 @@ get_variables_from_topic(Pool, ScriptData, Topic) ->
     {ok, Result} = ubidots_emqx_reactor_redis_cli:get_variables_from_topic(Pool, single, ScriptData, Topic),
     Result.
 
-get_values_variables(Pool, _ScriptData, VariablesData) ->
-    {ok, Result} = ubidots_emqx_core_redis_cli:get_values_variables(Pool, single, VariablesData),
+get_values_variables(Pool, Type, VariablesData) ->
+    {ok, Result} = ubidots_emqx_core_redis_cli:get_values_variables(Pool, Type, VariablesData),
     Result.
 
 get_values_from_topic(Topic, Env, PoolReactor, PoolCore) ->
+    UbidotsRedisType =  proplists:get_value(ubidots_cache_type, Env, single),
     GetVariablesFromTopicScriptFilePath = reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path,
     ReactorScriptFilePath = proplists:get_value(GetVariablesFromTopicScriptFilePath, Env, ""),
-    UbidotsScriptFilePath = proplists:get_value(ubidots_cache_get_values_variables_script_file_path, Env, ""),
     GetVariablesFromTopicScriptBase64 = reactor_cache_get_subscription_variables_from_mqtt_topic_script_base64,
     ReactorScriptBase64 = proplists:get_value(GetVariablesFromTopicScriptBase64, Env, ""),
     ReactorLuaScriptFromBase64 = get_lua_script_from_base64(ReactorScriptBase64),
     ReactorScriptData = get_lua_script_data_from_env_result(ReactorLuaScriptFromBase64, ReactorScriptFilePath),
-    GetValuesVariablesScriptBase64 = ubidots_cache_get_values_variables_script_base64,
-    UbidotsScriptBase64 = proplists:get_value(GetValuesVariablesScriptBase64, Env, ""),
-    UbidotsLuaScriptFromBase64 = get_lua_script_from_base64(UbidotsScriptBase64),
-    UbidotsScriptData = get_lua_script_data_from_env_result(UbidotsLuaScriptFromBase64, UbidotsScriptFilePath),
     VariablesData = get_variables_from_topic(PoolReactor, ReactorScriptData, Topic),
-    Values = get_values_variables(PoolCore, UbidotsScriptData, VariablesData),
+    Values = get_values_variables(PoolCore, UbidotsRedisType, VariablesData),
     Values.
 
 get_messages([]) -> [];
