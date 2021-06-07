@@ -29,8 +29,8 @@ get_variables_from_topic(Pool, ScriptData, Topic) ->
     {ok, Result} = ubidots_emqx_reactor_redis_cli:get_variables_from_topic(Pool, single, ScriptData, Topic),
     Result.
 
-get_values_variables(Pool, ScriptData, VariablesData) ->
-    {ok, Result} = ubidots_emqx_core_redis_cli:get_values_variables(Pool, single, ScriptData, VariablesData),
+get_values_variables(Pool, _ScriptData, VariablesData) ->
+    {ok, Result} = ubidots_emqx_core_redis_cli:get_values_variables(Pool, single, VariablesData),
     Result.
 
 get_values_from_topic(Topic, Env, PoolReactor, PoolCore) ->
