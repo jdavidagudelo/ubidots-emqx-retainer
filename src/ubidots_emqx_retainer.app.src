@@ -1,7 +1,7 @@
 {application,
  ubidots_emqx_retainer,
  [{description, "Ubidots EMQ X Retainer"},
-  {vsn, "git"},
+  {vsn, "4.3.0"},
   {modules, []},
   {registered, [ubidots_emqx_retainer_sup]},
   {applications, [kernel, stdlib,eredis,eredis_cluster,ecpool]},
