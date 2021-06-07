@@ -11,6 +11,10 @@ jobs:
         # Service containers to run with `runner-job`
         services:
           # Label used to access the service container
+          rediscluster:
+            image: grokzen/redis-cluster:latest
+            ports:
+              - 7000-7005:7000-7005
           redis:
             # Docker Hub image
             image: redis
