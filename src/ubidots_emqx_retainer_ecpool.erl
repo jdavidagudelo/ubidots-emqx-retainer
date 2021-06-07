@@ -1,7 +1,7 @@
 -module(ubidots_emqx_retainer_ecpool).
 
 -author("jdavidagudelo").
-
+-include("ubidots_emqx_retainer.hrl").
 -export([start_pools/3]).
 
 init_redis_cluster_core(PoolCore, Env) ->

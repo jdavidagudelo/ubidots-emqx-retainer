@@ -9,7 +9,7 @@
 -module(ubidots_emqx_retainer_payload_changer).
 
 -author("jdavidagudelo").
-
+-include("ubidots_emqx_retainer.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 %% API
