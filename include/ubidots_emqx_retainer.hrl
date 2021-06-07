@@ -17,4 +17,4 @@
 -define(APP, ubidots_emqx_retainer).
 -define(TAB, ?APP).
 
--record(ubidots_emqx_retained, {}).
+-record(ubidots_emqx_retainer, {}).
