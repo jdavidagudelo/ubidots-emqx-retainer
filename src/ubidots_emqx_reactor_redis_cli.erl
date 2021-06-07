@@ -19,7 +19,7 @@
 -behaviour(ecpool_worker).
 
 -include("ubidots_emqx_retainer.hrl").
--include("logger.hrl").
+-include_lib("emqx/include/logger.hrl").
 
 -export([connect/1, get_variables_from_topic/4]).
 
