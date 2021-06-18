@@ -71,6 +71,16 @@
   {datatype, {enum, [round_robin, random, hash]}}
 ]}.
 
+{mapping, "retainer.ubidots_cache.server", "ubidots_emqx_retainer.ubidots_cache_server", [
+  {default, "127.0.0.1"},
+  {datatype, string}
+]}.
+
+{mapping, "retainer.ubidots_cache.type", "ubidots_emqx_retainer.ubidots_cache_type", [
+  {default, single},
+  {datatype, {enum, [single, cluster]}}
+]}.
+
 {mapping, "retainer.reactor_cache.get_subscription_variables_from_mqtt_topic_script_file_path", "ubidots_emqx_retainer.reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path", [
   {default, "retainer_changer/get_subscription_variables_from_mqtt_topic.lua"},
   {datatype, string}

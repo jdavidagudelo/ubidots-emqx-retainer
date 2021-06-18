@@ -14,7 +14,7 @@
 
 -compile(nowarn_export_all).
 
--define(APP, emqx).
+-define(APP, ubidots_emqx_retainer).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -23,19 +23,52 @@
 all() -> emqx_ct:all(?MODULE).
 
 init_per_suite(Config) ->
-    emqx_ct_helpers:start_apps([ubidots_emqx_retainer]),
+    emqx_ct_helpers:start_apps([?APP]),
     Config.
 
-end_per_suite(_Config) -> emqx_ct_helpers:stop_apps([ubidots_emqx_retainer]).
+end_per_suite(_Config) -> emqx_ct_helpers:stop_apps([?APP]).
 
 init_per_testcase(_TestCase, Config) ->
-    application:stop(ubidots_emqx_retainer),
-    application:ensure_all_started(ubidots_emqx_retainer),
+    application:stop(?APP),
+    application:set_env(?APP, ubidots_cache_type, cluster),
+    application:start(?APP),
     Config.
 
 end_per_testcase(_TestCase, Config) ->
-    application:stop(ubidots_emqx_retainer),
+    application:stop(?APP),
     Config.
+
+t_retain_cluster_value(_) ->
+    Devices = ["d1",
+               "d1_id",
+               ["v1", "v1_d1_id", "v2", "v2_d1_id", "v3", "v3_d1_id"],
+               "d2",
+               "d2_id",
+               ["v1", "v1_d2_id", "v2", "v2_d2_id", "v3", "v3_d2_id"]],
+    Env = ubidots_emqx_retainer_test_utils:get_test_env(),
+    ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
+    UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ubidots_emqx_retainer_test_utils:init_redis_cluster_ubidots(pool_core, ubidots_emqx_retainer_test_utils:get_redis_cluster_test_env()),
+    ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
+                                                           pool_core,
+                                                           cluster,
+                                                           "token",
+                                                           "owner_id",
+                                                           Devices),
+    {ok, C1} = emqtt:start_link([{clean_start, true}, {proto_ver, v5}]),
+    {ok, _} = emqtt:connect(C1),
+    {ok, #{}, [0]} = emqtt:subscribe(C1, <<"/v1.6/users/token/devices/d1/v1">>, [{qos, 0}, {rh, 0}]),
+    ExpectedMessages = [#{topic => <<"/v1.6/devices/d1/v1">>,
+                          payload =>
+                              <<"{\"value\": 11.1, \"timestamp\": 11, \"context\": {\"a\": 11}, \"created_at\": "
+                                "11}">>}],
+    Messages = receive_messages(1),
+    ?assertEqual(1, (length(Messages))),
+    validate_messages(Messages, ExpectedMessages),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, pool_core, cluster),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, UbidotsRedisClient, single),
+    ok = emqtt:disconnect(C1).
+
 
 t_retain_wild_card_variable_lv(_) ->
     Devices = ["d1",
@@ -47,8 +80,10 @@ t_retain_wild_card_variable_lv(_) ->
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
     ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ubidots_emqx_retainer_test_utils:init_redis_cluster_ubidots(pool_core, ubidots_emqx_retainer_test_utils:get_redis_cluster_test_env()),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
-                                                           UbidotsRedisClient,
+                                                           pool_core,
+                                                           cluster,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
@@ -61,6 +96,8 @@ t_retain_wild_card_variable_lv(_) ->
     Messages = receive_messages(3),
     ?assertEqual(3, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, pool_core, cluster),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, UbidotsRedisClient, single),
     ok = emqtt:disconnect(C1).
 
 t_retain_wild_card_variable(_) ->
@@ -73,8 +110,10 @@ t_retain_wild_card_variable(_) ->
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
     ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ubidots_emqx_retainer_test_utils:init_redis_cluster_ubidots(pool_core, ubidots_emqx_retainer_test_utils:get_redis_cluster_test_env()),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
-                                                           UbidotsRedisClient,
+                                                           pool_core,
+                                                           cluster,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
@@ -96,6 +135,8 @@ t_retain_wild_card_variable(_) ->
     Messages = receive_messages(3),
     ?assertEqual(3, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, pool_core, cluster),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, UbidotsRedisClient, single),
     ok = emqtt:disconnect(C1).
 
 t_retain_empty(_) ->
@@ -103,8 +144,10 @@ t_retain_empty(_) ->
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
     ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ubidots_emqx_retainer_test_utils:init_redis_cluster_ubidots(pool_core, ubidots_emqx_retainer_test_utils:get_redis_cluster_test_env()),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
-                                                           UbidotsRedisClient,
+                                                           pool_core,
+                                                           cluster,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
@@ -115,6 +158,8 @@ t_retain_empty(_) ->
     Messages = receive_messages(0),
     ?assertEqual(0, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, pool_core, cluster),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, UbidotsRedisClient, single),
     ok = emqtt:disconnect(C1).
 
 t_retain_lv(_) ->
@@ -127,8 +172,10 @@ t_retain_lv(_) ->
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
     ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ubidots_emqx_retainer_test_utils:init_redis_cluster_ubidots(pool_core, ubidots_emqx_retainer_test_utils:get_redis_cluster_test_env()),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
-                                                           UbidotsRedisClient,
+                                                           pool_core,
+                                                           cluster,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
@@ -139,6 +186,8 @@ t_retain_lv(_) ->
     Messages = receive_messages(1),
     ?assertEqual(1, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, pool_core, cluster),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, UbidotsRedisClient, single),
     ok = emqtt:disconnect(C1).
 
 t_retain_single_value(_) ->
@@ -151,8 +200,10 @@ t_retain_single_value(_) ->
     Env = ubidots_emqx_retainer_test_utils:get_test_env(),
     ReactorRedisClient = ubidots_emqx_retainer_test_utils:get_reactor_redis_client(Env),
     UbidotsRedisClient = ubidots_emqx_retainer_test_utils:get_ubidots_redis_client(Env),
+    ubidots_emqx_retainer_test_utils:init_redis_cluster_ubidots(pool_core, ubidots_emqx_retainer_test_utils:get_redis_cluster_test_env()),
     ubidots_emqx_retainer_test_utils:initialize_mqtt_cache(ReactorRedisClient,
-                                                           UbidotsRedisClient,
+                                                           pool_core,
+                                                           cluster,
                                                            "token",
                                                            "owner_id",
                                                            Devices),
@@ -166,6 +217,8 @@ t_retain_single_value(_) ->
     Messages = receive_messages(1),
     ?assertEqual(1, (length(Messages))),
     validate_messages(Messages, ExpectedMessages),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, pool_core, cluster),
+    ubidots_emqx_retainer_test_utils:flushdb(ReactorRedisClient, UbidotsRedisClient, single),
     ok = emqtt:disconnect(C1).
 
 validate_messages([], []) -> ok;
