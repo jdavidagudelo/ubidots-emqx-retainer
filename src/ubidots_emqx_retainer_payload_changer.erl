@@ -34,7 +34,7 @@ get_values_variables(Pool, Type, VariablesData) ->
     Result.
 
 get_values_from_topic(Topic, Env, PoolReactor, PoolCore) ->
-    UbidotsRedisType =  proplists:get_value(ubidots_cache_type, Env, single),
+    UbidotsRedisType = proplists:get_value(ubidots_cache_type, Env, single),
     GetVariablesFromTopicScriptFilePath = reactor_cache_get_subscription_variables_from_mqtt_topic_script_file_path,
     ReactorScriptFilePath = proplists:get_value(GetVariablesFromTopicScriptFilePath, Env, ""),
     GetVariablesFromTopicScriptBase64 = reactor_cache_get_subscription_variables_from_mqtt_topic_script_base64,

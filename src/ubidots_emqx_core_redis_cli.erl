@@ -64,12 +64,10 @@ get_value_by_key(Pool, VariableKey, Type) ->
         cluster -> eredis_cluster:q(Pool, ["GET", VariableKey])
     end.
 
-get_values_loop_redis(_Pool, _Type, []) ->
-    [];
+get_values_loop_redis(_Pool, _Type, []) -> [];
 get_values_loop_redis(Pool, Type, [ValueKind, Topic, VariableId | RestData]) ->
     VariableKey = string:concat(get_variable_key(ValueKind), binary_to_list(VariableId)),
     {ok, Value} = get_value_by_key(Pool, VariableKey, Type),
     [Topic, Value] ++ get_values_loop_redis(Pool, Type, RestData).
 
-get_values_variables(Pool, Type, VariablesData) ->
-    {ok, get_values_loop_redis(Pool, Type, VariablesData)}.
+get_values_variables(Pool, Type, VariablesData) -> {ok, get_values_loop_redis(Pool, Type, VariablesData)}.
