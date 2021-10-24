@@ -24,3 +24,5 @@ rebar.lock
 test/ct.cover.spec
 etc/ubidots_emqx_retainer.conf.rendered
 .rebar3/
+.vscode
+.history
