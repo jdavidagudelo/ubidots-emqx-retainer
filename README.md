@@ -16,3 +16,6 @@ To run code validations:
     make xref eunit ct cover
 
 
+To print something in erlang:
+
+    io:format("~w~n", ["TEST STRING"]),
