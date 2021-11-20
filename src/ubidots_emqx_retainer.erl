@@ -22,11 +22,7 @@
 
 -include_lib("emqx/include/emqx.hrl").
 
--include_lib("emqx/include/logger.hrl").
-
 -include_lib("stdlib/include/ms_transform.hrl").
-
--logger_header("[Retainer]").
 
 -export([start_link/1]).
 
@@ -93,16 +89,13 @@ init([_]) ->
     State = #state{stats_fun = StatsFun, stats_timer = StatsTimer},
     {ok, State}.
 
-handle_call(Req, _From, State) ->
-    ?LOG(error, "Unexpected call: ~p", [Req]),
+handle_call(_Req, _From, State) ->
     {reply, ignored, State}.
 
-handle_cast(Msg, State) ->
-    ?LOG(error, "Unexpected cast: ~p", [Msg]),
+handle_cast(_Msg, State) ->
     {noreply, State}.
 
 handle_info(stats, State) -> {noreply, State, hibernate};
 handle_info(expire, State) -> {noreply, State, hibernate};
-handle_info(Info, State) ->
-    ?LOG(error, "Unexpected info: ~p", [Info]),
+handle_info(_Info, State) ->
     {noreply, State}.
