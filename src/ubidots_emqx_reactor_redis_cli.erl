@@ -16,8 +16,6 @@
 
 -module(ubidots_emqx_reactor_redis_cli).
 
--behaviour(ecpool_worker).
-
 -include_lib("emqx/include/logger.hrl").
 
 -include_lib("eunit/include/eunit.hrl").

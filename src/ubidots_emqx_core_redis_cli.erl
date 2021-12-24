@@ -16,8 +16,6 @@
 
 -module(ubidots_emqx_core_redis_cli).
 
--behaviour(ecpool_worker).
-
 -include_lib("emqx/include/logger.hrl").
 
 -export([connect/1, get_values_variables/3]).
